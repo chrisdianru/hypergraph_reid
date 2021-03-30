@@ -67,6 +67,7 @@ parser.add_argument('--pool', type=str, default='avg', choices=['avg', 'max'])
 parser.add_argument('--print-freq', type=int, default=80, help="print frequency")
 parser.add_argument('--seed', type=int, default=1, help="manual seed")
 parser.add_argument('--pretrained-model', type=str, default='/home/jiyang/Workspace/Works/video-person-reid/3dconv-person-reid/pretrained_models/resnet-50-kinetics.pth', help='need to be set for resnet3d models')
+parser.add_argument('--resume', type=str, default='', metavar='PATH')
 parser.add_argument('--evaluate', action='store_true', help="evaluation only")
 parser.add_argument('--eval-step', type=int, default=50,
                     help="run evaluation for every N epochs (set to -1 to test after training)")
@@ -187,6 +188,11 @@ def main():
             scheduler = lr_scheduler.StepLR(optimizer, step_size=args.stepsize, gamma=args.gamma)
     start_epoch = args.start_epoch
 
+    if args.resume:
+        print("Loading checkpoint from '{}'".format(args.resume))
+        checkpoint = torch.load(args.resume)
+        model.load_state_dict(checkpoint['state_dict'])
+        start_epoch = checkpoint['epoch']+1
     if use_gpu:
         model = nn.DataParallel(model).cuda()
 
@@ -213,6 +219,7 @@ def main():
     adj3 = Variable(adj3)
     '''    
 
+    torch.cuda.empty_cache()
     for epoch in range(start_epoch, args.max_epoch):
         print("==> Epoch {}/{}  lr:{}".format(epoch+1, args.max_epoch, scheduler.get_lr()[0]))
         
@@ -238,8 +245,8 @@ def main():
                 'rank1': rank1,
                 'epoch': epoch,
             }, is_best, osp.join(args.save_dir, 'checkpoint_ep' + str(epoch+1) + '.pth.tar'))
-            
-
+        torch.cuda.empty_cache()
+ 
     elapsed = round(time.time() - start_time)
     elapsed = str(datetime.timedelta(seconds=elapsed))
     print("Finished. Total elapsed time (h:m:s): {}".format(elapsed))
