@@ -11,6 +11,7 @@ import random
 from .resnet import ResNet, BasicBlock, Bottleneck, ResNetNonLocal
 from .utils import build_adj_full_full, build_adj_full_d
 __all__ = ['ResNet50GRAPHPOOLPARTHyper']
+import torch.utils.model_zoo as model_zoo
 
 class NearestConvolution(nn.Module):
     """
@@ -540,7 +541,7 @@ class ResNet50GRAPHPOOLPARTHyper(nn.Module):
         self.base = ResNetNonLocal(last_stride=1,
                                block=Bottleneck,
                                layers=[3, 4, 6, 3])
-        self.base.load_param('/home/ubuntu/.torch/models/resnet50-19c8e357.pth')
+        self.base.load_param('/home/lzw/.torch/models/resnet50-19c8e357.pth')
         
 
         self.layers1 = nn.ModuleList([
